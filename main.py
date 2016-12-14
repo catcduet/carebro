@@ -35,8 +35,13 @@ if __name__ == "__main__":
     timer.start("Processing")
     for i in range(n_frames):
         _, img = cap.read()
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         img, center = process_image(img, 8, 272, 18)
-        out.write(img)
+        # out.write(img)
+        cv2.imshow("img", img)
+        if 0xFF & cv2.waitKey(30) == 27:
+            break
+        # cv2.waitKey(0)
         print_center(OUT_FILE, i, center)
 
     timer.stop()

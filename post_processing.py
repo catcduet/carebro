@@ -1,6 +1,10 @@
 import cv2
 import numpy as np
 
+import model_handler
+
+m = model_handler.load_model("deeplane_model")
+
 
 def split_image(img, n_blks, blk_width, blk_height):
     blks = []
@@ -30,14 +34,13 @@ def split_image(img, n_blks, blk_width, blk_height):
 
 
 def predict_lane_markings(blks):
-    labels = [0] * 16
-    left = 50
-    right = 120
-    for i in range(8):
-        labels[2 * i] = left
-        labels[2 * i + 1] = right
-        left += 15
-        right -= 8
+    blks = np.array(blks)
+    #print(blks.shape)
+    blks = blks.reshape(16, 1, blks.shape[1], blks.shape[2]).astype('float32')
+    #print(blks.shape)
+    labels = m.predict(blks, batch_size=16, verbose=0)
+
+    labels = [np.argmax(label) for label in labels]
 
     return labels
 
@@ -103,6 +106,7 @@ if __name__ == "__main__":
     cap.open("../video/01.avi")
 
     _, img = cap.read()
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     blks, coords = split_image(img, 8, 272, 18)
     labels = predict_lane_markings(blks)
