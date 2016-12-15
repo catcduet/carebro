@@ -1,0 +1,7 @@
+*CMakeFiles/
+gen_image/
+*CMakeCache.txt
+*cmake_install.cmake
+*Makefile
+GenData
+gaussian/Run
