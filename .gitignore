@@ -93,3 +93,4 @@ ENV/
 gen_image/
 video/
 pkl_dataset/
+Contestant.txt

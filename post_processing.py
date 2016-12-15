@@ -38,7 +38,7 @@ def predict_lane_markings(blks, model):
     labels = model.predict(blks, batch_size=n_blks, verbose=0)
 
     labels = [np.argmax(label) for label in labels]
-
+    print(labels)
     return labels
 
 
@@ -75,9 +75,6 @@ def fit_line(points, y0, y1):
 
 
 def get_lane_center(left_pt0, left_pt1, right_pt0, right_pt1):
-    if not (left_pt0 and left_pt1 and right_pt0 and right_pt1):
-        return (0, 0)
-
     m_x = (left_pt0[0] + left_pt1[0]) / 2
     m_y = (left_pt0[1] + left_pt1[1]) / 2
     m_u = (right_pt0[0] + right_pt1[0]) / 2
@@ -105,11 +102,11 @@ def process_image(img, model, half_n_blks, blk_width, blk_height, debug=False):
     left_pt0, left_pt1 = fit_line(left_pts, lower_bound, upper_bound)
     right_pt0, right_pt1 = fit_line(right_pts, lower_bound, upper_bound)
 
-    center = get_lane_center(left_pt0, left_pt1, right_pt0, right_pt1)
-
-    cv2.circle(img, center, 4, (255, 0, 0), 3)
-    cv2.line(img, left_pt0, left_pt1, (0, 0, 255), 2)
-    cv2.line(img, right_pt0, right_pt1, (0, 0, 255), 2)
+    if (left_pt0 and left_pt1 and right_pt0 and right_pt1):
+        center = get_lane_center(left_pt0, left_pt1, right_pt0, right_pt1)
+        cv2.circle(img, center, 4, (255, 0, 0), 3)
+        cv2.line(img, left_pt0, left_pt1, (0, 0, 255), 2)
+        cv2.line(img, right_pt0, right_pt1, (0, 0, 255), 2)
 
     if debug:
         for pt in left_pts:
