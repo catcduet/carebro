@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 
-def split_image(img, half_n_blks, blk_width, blk_height):
+def split_image(img, half_n_blks, blk_width, blk_height, flip):
     blks = []
     coords = []
 
@@ -19,10 +19,14 @@ def split_image(img, half_n_blks, blk_width, blk_height):
         blks.append(img[y0:y1, x0:x1])
         coords.append((x0, y0 + int(blk_height / 2)))
 
-        # right block will be flipped horizontally
-        flipped_blk = cv2.flip(img[y0:y1, x1:x2], 1)
-        blks.append(flipped_blk)
-        coords.append((x2, y0 + int(blk_height / 2)))
+        if flip:
+            # right block will be flipped horizontally
+            flipped_blk = cv2.flip(img[y0:y1, x1:x2], 1)
+            blks.append(flipped_blk)
+            coords.append((x2, y0 + int(blk_height / 2)))
+        else:
+            blks.append(img[y0:y1, x1:x2])
+            coords.append((x1, y0 + int(blk_height / 2)))
 
         y0 -= blk_height
         y1 -= blk_height
@@ -42,7 +46,7 @@ def predict_lane_markings(blks, model):
     return labels
 
 
-def get_lane_marking_points(coords, labels):
+def get_lane_marking_points(coords, labels, flip):
     left_pts = []
     right_pts = []
 
@@ -54,7 +58,10 @@ def get_lane_marking_points(coords, labels):
             point = (coords[i][0] + label - 1, coords[i][1])
             left_pts.append(point)
         else:
-            point = (coords[i][0] - label + 1, coords[i][1])
+            if flip:
+                point = (coords[i][0] - label + 1, coords[i][1])
+            else:
+                point = (coords[i][0] + label - 1, coords[i][1])
             right_pts.append(point)
 
     return left_pts, right_pts
@@ -90,12 +97,12 @@ def get_lane_center(left_pt0, left_pt1, right_pt0, right_pt1):
     return (cx, cy)
 
 
-def process_image(img, model, half_n_blks, blk_width, blk_height, debug=False):
+def process_image(img, model, half_n_blks, blk_width, blk_height, debug=False, flip=True):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    blks, coords = split_image(gray, half_n_blks, blk_width, blk_height)
+    blks, coords = split_image(gray, half_n_blks, blk_width, blk_height, flip)
     labels = predict_lane_markings(blks, model)
-    left_pts, right_pts = get_lane_marking_points(coords, labels)
+    left_pts, right_pts = get_lane_marking_points(coords, labels, flip)
 
     upper_bound = img.shape[0]
     lower_bound = upper_bound - blk_height * half_n_blks
