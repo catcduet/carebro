@@ -6,7 +6,9 @@ import time
 import cv2
 import pickle
 import numpy as np
+
 from constants import *
+from utils import Timer
 
 
 class Dataset():
@@ -37,26 +39,10 @@ class Dataset():
         self.val_idx = np.array(self.val_idx, dtype='int')
 
     def get_train_dataset(self):
-        return self.load_pickle_data(TRAIN_DATASET_FILE)
+        return self.load_raw_data(self.train_idx)
 
     def get_val_dataset(self):
-        return self.load_pickle_data(VAL_DATASET_FILE)
-
-    def _create_new_train_val_set(self, ratio=0.8):
-        # select training set and validation set from data randomly
-        for i in range(self.all_names.shape[0]):
-            r = random.random()
-            if r < ratio:
-                self.train_idx.append(i)
-            else:
-                self.val_idx.append(i)
-
-        # save their indexes to files
-        with open("train_val_set_{}".format(int(time.time())), "w") as f:
-            f.write(json.dumps({
-                "train_idx": self.train_idx,
-                "val_idx": self.val_idx
-            }))
+        return self.load_raw_data(self.val_idx)
 
     def load_raw_data(self, idx_list):
         m = idx_list.shape[0]
@@ -78,17 +64,21 @@ class Dataset():
 
         return X, Y
 
-    def dump_data(self, images, labels, filename):
-        with open(filename, "wb") as f:
-            pickle.dump(images, f)
-            pickle.dump(labels, f)
+    def _create_new_train_val_set(self, ratio=0.8):
+        # select training set and validation set from data randomly
+        for i in range(self.all_names.shape[0]):
+            r = random.random()
+            if r < ratio:
+                self.train_idx.append(i)
+            else:
+                self.val_idx.append(i)
 
-    def load_pickle_data(self, filename):
-        with open(filename, "rb") as f:
-            images = pickle.load(f)
-            labels = pickle.load(f)
-
-        return images, labels
+        # save their indexes to files
+        with open("train_val_set_{}".format(int(time.time())), "w") as f:
+            f.write(json.dumps({
+                "train_idx": self.train_idx,
+                "val_idx": self.val_idx
+            }))
 
     def _read_train_val_set(self, file_name):
         with open(file_name, "r") as f:
@@ -96,9 +86,25 @@ class Dataset():
         self.train_idx = obj["train_idx"]
         self.val_idx = obj["val_idx"]
 
-if __name__ == "__main__":
-    d = Dataset("train_val_set_1481707248")
-    X_train, Y_train = d.load_raw_data(d.train_idx)
-    X_val, Y_val = d.load_raw_data(d.val_idx)
-    d.dump_data(X_train, Y_train, TRAIN_DATASET_FILE)
-    d.dump_data(X_val, Y_val, VAL_DATASET_FILE)
+
+# if __name__ == "__main__":
+#     timer = Timer()
+#     timer.start("Init dataset")
+#     d = Dataset("train_val_set_1481772215")
+#     timer.stop()
+
+#     timer.start("Loading raw training data")
+#     X_train, Y_train = d.load_raw_data(d.train_idx)
+#     timer.stop()
+
+#     timer.start("Dumping")
+#     d.dump_data(X_train, Y_train, TRAIN_DATASET_FILE)
+#     timer.stop()
+
+#     timer.start("Loading raw validation data")
+#     X_val, Y_val = d.load_raw_data(d.val_idx)
+#     timer.stop()
+
+#     timer.start("Dumping")
+#     d.dump_data(X_val, Y_val, VAL_DATASET_FILE)
+#     timer.stop()

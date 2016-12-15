@@ -60,7 +60,7 @@ def train_model(model):
     # how many examples to look at during each training iteration
     batch_size = 128
     # how many times to run through the full set of examples
-    n_epochs = 5
+    n_epochs = 20
     # the training may be slow depending on your computer
     model.fit(X_train,
             Y_train,
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     # deal with dataset
     timer = Timer()
     timer.start("Loading data")
-    d = Dataset("train_val_set_1481707248")
+    d = Dataset("train_val_set_1481772215")
     X_train, Y_train = d.get_train_dataset()
     X_val, Y_val = d.get_val_dataset()
     timer.stop()
