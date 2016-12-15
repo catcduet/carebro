@@ -62,7 +62,8 @@ def get_lane_marking_points(coords, labels):
 
 def fit_line(points, y0, y1):
     if len(points) < 1:
-        return None
+        return None, None
+
     vx, vy, cx, cy = cv2.fitLine(np.float32(
         points), cv2.DIST_HUBER, 0, 0.01, 0.01)
 
@@ -107,6 +108,8 @@ def process_image(img, model, half_n_blks, blk_width, blk_height, debug=False):
         cv2.circle(img, center, 4, (255, 0, 0), 3)
         cv2.line(img, left_pt0, left_pt1, (0, 0, 255), 2)
         cv2.line(img, right_pt0, right_pt1, (0, 0, 255), 2)
+    else:
+        center = (0, 0)
 
     if debug:
         for pt in left_pts:
