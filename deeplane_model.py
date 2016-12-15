@@ -23,7 +23,7 @@ def build_model():
         input_shape=(HEIGHT, WIDTH, 1),
         activation='relu'
     ))
-    model.add(BatchNormalization())
+    #model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
 
@@ -34,7 +34,7 @@ def build_model():
         subsample=(1, 1),
         activation='relu'
     ))
-    model.add(BatchNormalization())
+    #model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     model.add(Flatten())
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     # deal with dataset
     timer = Timer()
     timer.start("Loading data")
-    d = Dataset("pkl_dataset/carpet_blur/", "train_val_set_200000")
+    d = Dataset(PICKLE_DATASET, "train_val_set_10000")
     X_train, Y_train = d.get_train_dataset()
     X_val, Y_val = d.get_val_dataset()
     timer.stop()
@@ -85,4 +85,4 @@ if __name__ == "__main__":
 
     train_model(m)
 
-    model_handler.save_model(m, "trained_models/carpet_blur")
+    model_handler.save_model(m, "trained_models/carpet_sharp_model")

@@ -34,8 +34,9 @@ if __name__ == "__main__":
         _, img = cap.read()
         img, center = process_image(img, m, HALF_N_BLKS, WIDTH, HEIGHT, debug=True, flip=False)
         cv2.imshow("img", img)
-        if 0xFF & cv2.waitKey(30) == 27:
-            break
+        # if 0xFF & cv2.waitKey(30) == 27:
+        #     break
+        cv2.waitKey(0)
         print_center(OUT_FILE, i, center)
         out.write(img)
 

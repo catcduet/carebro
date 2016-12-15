@@ -86,14 +86,14 @@ class Dataset():
 if __name__ == "__main__":  # process raw data
     # read all file names in folder
     for i in range(WIDTH + 1):
-        all_names = np.array(["{}/{}".format(i, j) for j in listdir("gen_image/carpet_blur/" + str(i))])
+        all_names = np.array(["{}/{}".format(i, j) for j in listdir(DATASET_FOLDER + str(i))])
         m = all_names.shape[0]
 
         X = np.zeros((m, HEIGHT * WIDTH))
         Y = np.zeros((m, WIDTH + 1), dtype='int')
 
         for k in range(m):
-            img_src = "gen_image/carpet_blur/" + all_names[k]
+            img_src = DATASET_FOLDER + all_names[k]
             # load image as grayscale
             img = cv2.imread(img_src, cv2.IMREAD_GRAYSCALE)
             # flat image
@@ -103,6 +103,6 @@ if __name__ == "__main__":  # process raw data
 
         X = X.reshape(m, HEIGHT, WIDTH, 1).astype('float32')
 
-        with open("pkl_dataset/carpet_blur/{}".format(i), "wb") as f:
+        with open("{}{}".format(PICKLE_DATASET, i), "wb") as f:
             pickle.dump(X, f, protocol=pickle.HIGHEST_PROTOCOL)
             pickle.dump(Y, f, protocol=pickle.HIGHEST_PROTOCOL)
