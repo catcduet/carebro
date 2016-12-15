@@ -66,6 +66,9 @@ class Dataset():
             else:
                 self.val_idx.append(i)
 
+        random.shuffle(self.train_idx)
+        random.shuffle(self.val_idx)
+
         # save their indexes to files
         with open("train_val_set_{}".format(self.X.shape[0]), "w") as f:
             f.write(json.dumps({

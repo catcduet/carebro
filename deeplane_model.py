@@ -24,7 +24,7 @@ def build_model():
         activation='relu'
     ))
     model.add(BatchNormalization())
-    model.add(MaxPooling2D(pool_size=(2, 2), dim_ordering='th'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
 
 
     model.add(Convolution2D(
@@ -35,7 +35,7 @@ def build_model():
         activation='relu'
     ))
     model.add(BatchNormalization())
-    model.add(MaxPooling2D(pool_size=(2, 2), dim_ordering='th'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
 
     model.add(Flatten())
     model.add(Dense(2048, activation='relu'))
@@ -60,7 +60,7 @@ def train_model(model):
     # how many examples to look at during each training iteration
     batch_size = 128
     # how many times to run through the full set of examples
-    n_epochs = 20
+    n_epochs = 10
     # the training may be slow depending on your computer
     model.fit(X_train,
             Y_train,
@@ -85,4 +85,4 @@ if __name__ == "__main__":
 
     train_model(m)
 
-    model_handler.save_model(m, "trained_models/carpet_model")
+    model_handler.save_model(m, "trained_models/carpet_blur")
