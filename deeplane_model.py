@@ -24,7 +24,7 @@ def build_model():
         input_shape=(1, HEIGHT, WIDTH),
         activation='relu'
     ))
-    # model.add(BatchNormalization())
+    model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2), dim_ordering='th'))
 
     model.add(Convolution2D(
@@ -35,7 +35,7 @@ def build_model():
         dim_ordering='th',
         activation='relu'
     ))
-    # model.add(BatchNormalization())
+    model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2), dim_ordering='th'))
     model.add(Flatten())
     model.add(Dense(2048, activation='relu'))
