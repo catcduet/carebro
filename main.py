@@ -32,11 +32,11 @@ if __name__ == "__main__":
     timer.start("Processing")
     for i in range(n_frames):
         _, img = cap.read()
-        img, center = process_image(img, m, HALF_N_BLKS, WIDTH, HEIGHT, debug=True, flip=False)
-        cv2.imshow("img", img)
-        if 0xFF & cv2.waitKey(30) == 27:
-            break
+        img, center = process_image(img, m, HALF_N_BLKS, WIDTH, HEIGHT, debug=True, flip=True)
         print_center(OUT_FILE, i, center)
         out.write(img)
+
+        if 0xFF & cv2.waitKey(30) == 27:
+            break
 
     timer.stop()

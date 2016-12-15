@@ -23,10 +23,10 @@ def split_image(img, half_n_blks, blk_width, blk_height, flip):
             # right block will be flipped horizontally
             flipped_blk = cv2.flip(img[y0:y1, x1:x2], 1)
             blks.append(flipped_blk)
-            coords.append((x2, y0 + int(blk_height / 2)))
         else:
             blks.append(img[y0:y1, x1:x2])
-            coords.append((x1, y0 + int(blk_height / 2)))
+
+        coords.append((x1, y0 + int(blk_height / 2)))
 
         y0 -= blk_height
         y1 -= blk_height
@@ -54,14 +54,13 @@ def get_lane_marking_points(coords, labels, flip):
         if label == 0:
             continue
 
+        point = (coords[i][0] + label - 1, coords[i][1])
+
         if i % 2 == 0:
-            point = (coords[i][0] + label - 1, coords[i][1])
             left_pts.append(point)
         else:
             if flip:
                 point = (coords[i][0] - label + 1, coords[i][1])
-            else:
-                point = (coords[i][0] + label - 1, coords[i][1])
             right_pts.append(point)
 
     return left_pts, right_pts
@@ -119,10 +118,30 @@ def process_image(img, model, half_n_blks, blk_width, blk_height, debug=False, f
         center = (0, 0)
 
     if debug:
+        dot_color = (0, 255, 255)
+        padding = 10
+        bottom = half_n_blks * (blk_height + padding)
+
         for pt in left_pts:
-            cv2.circle(img, pt, 2, (0, 255, 0), -1)
+            cv2.circle(img, pt, 2, dot_color, -1)
         for pt in right_pts:
-            cv2.circle(img, pt, 2, (0, 255, 0), -1)
+            cv2.circle(img, pt, 2, dot_color, -1)
+
+        for i, blk in enumerate(blks):
+            colored_blk = cv2.cvtColor(blk, cv2.COLOR_GRAY2BGR)
+            cv2.putText(colored_blk, str(labels[i]), (12, 12), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0))
+
+            if labels[i] != 0:
+                marking_pos = (labels[i] - 1, int(blk_height / 2))
+                cv2.circle(colored_blk, marking_pos, 2, dot_color, -1)
+
+            x_pos = 0 if i % 2 == 0 else blk_width
+            y_pos = bottom - int(i / 2) * (blk_height + padding)
+
+            cv2.imshow(str(i), colored_blk)
+            cv2.moveWindow(str(i), x_pos, y_pos)
+
+        cv2.imshow("Frame", img)
 
     return img, center
 
