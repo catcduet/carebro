@@ -23,10 +23,10 @@ def split_image(img, half_n_blks, blk_width, blk_height, flip):
             # right block will be flipped horizontally
             flipped_blk = cv2.flip(img[y0:y1, x1:x2], 1)
             blks.append(flipped_blk)
+            coords.append((x2, y0 + int(blk_height / 2)))
         else:
             blks.append(img[y0:y1, x1:x2])
-
-        coords.append((x1, y0 + int(blk_height / 2)))
+            coords.append((x1, y0 + int(blk_height / 2)))
 
         y0 -= blk_height
         y1 -= blk_height

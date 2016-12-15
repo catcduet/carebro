@@ -33,6 +33,9 @@ if __name__ == "__main__":
     for i in range(n_frames):
         _, img = cap.read()
         img, center = process_image(img, m, HALF_N_BLKS, WIDTH, HEIGHT, debug=True, flip=True)
+        # if 0xFF & cv2.waitKey(30) == 27:
+        #     break
+        cv2.waitKey(0)
         print_center(OUT_FILE, i, center)
         out.write(img)
 
