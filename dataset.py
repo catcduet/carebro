@@ -1,5 +1,4 @@
 from os import listdir
-from os.path import isfile, join
 import json
 import random
 import time
@@ -8,25 +7,15 @@ import pickle
 import numpy as np
 
 from constants import *
-from utils import Timer
 
 
 class Dataset():
-    def __init__(self, file_name=None):
-        # read all file names in folder
-        self.all_names = []
-        for i in range(WIDTH + 1):
-            self.all_names.extend(["{}/{}".format(i, j) for j in listdir(DATASET_FOLDER + str(i))])
-        self.all_names = np.array(self.all_names)
-        self.all_labels = []  # [0, 272]
+    def __init__(self, data_folder, file_name=None):
+        # load dataset from pickle files
+        self._load_data(data_folder)
+
         self.train_idx = []
         self.val_idx = []
-
-        # extract all labels from names
-        for i in range(self.all_names.shape[0]):
-            name = self.all_names[i].split("/")
-            self.all_labels.append(int(name[0]))
-        self.all_labels = np.array(self.all_labels, dtype='int')
 
         if not file_name:
             # create new training and validation set
@@ -39,34 +28,38 @@ class Dataset():
         self.val_idx = np.array(self.val_idx, dtype='int')
 
     def get_train_dataset(self):
-        return self.load_raw_data(self.train_idx)
+        return self._get_dataset(self.train_idx)
 
     def get_val_dataset(self):
-        return self.load_raw_data(self.val_idx)
+        return self._get_dataset(self.val_idx)
 
-    def load_raw_data(self, idx_list):
+    def _get_dataset(self, idx_list):
         m = idx_list.shape[0]
-        X = np.zeros((m, HEIGHT * WIDTH))
+        X = np.zeros((m, HEIGHT, WIDTH, 1), dtype='float32')
         Y = np.zeros((m, WIDTH+1), dtype='int')
-        I = np.eye(WIDTH+1)
-
         for i in range(m):
-            img_idx = idx_list[i]
-            img_src = DATASET_FOLDER + self.all_names[img_idx]
-            # load image as grayscale
-            img = cv2.imread(img_src, cv2.IMREAD_GRAYSCALE)
-            # flat image
-            img_flat = img.flatten() / 255.0  # normalize from [0, 255] to [0, 1]
-            X[i] = img_flat
-            Y[i, :] = I[self.all_labels[img_idx], :]
-
-        X = X.reshape(m, 1, HEIGHT, WIDTH).astype('float32')
+            X[i] = self.X[idx_list[i]]
+            Y[i] = self.Y[idx_list[i]]
 
         return X, Y
 
+    def _load_data(self, data_folder):
+        self.X = None
+        self.Y = None
+        first = True
+        for file in listdir(data_folder):
+            with open(data_folder + file, "rb") as f:
+                if first:
+                    first = False
+                    self.X = pickle.load(f)
+                    self.Y = pickle.load(f)
+                else:
+                    self.X = np.concatenate((self.X, pickle.load(f)))
+                    self.Y = np.concatenate((self.Y, pickle.load(f)))
+
     def _create_new_train_val_set(self, ratio=0.8):
         # select training set and validation set from data randomly
-        for i in range(self.all_names.shape[0]):
+        for i in range(self.X.shape[0]):
             r = random.random()
             if r < ratio:
                 self.train_idx.append(i)
@@ -74,7 +67,7 @@ class Dataset():
                 self.val_idx.append(i)
 
         # save their indexes to files
-        with open("train_val_set_{}".format(int(time.time())), "w") as f:
+        with open("train_val_set_{}".format(self.X.shape[0]), "w") as f:
             f.write(json.dumps({
                 "train_idx": self.train_idx,
                 "val_idx": self.val_idx
@@ -87,24 +80,26 @@ class Dataset():
         self.val_idx = obj["val_idx"]
 
 
-# if __name__ == "__main__":
-#     timer = Timer()
-#     timer.start("Init dataset")
-#     d = Dataset("train_val_set_1481772215")
-#     timer.stop()
+if __name__ == "__main__":  # process raw data
+    # read all file names in folder
+    for i in range(WIDTH + 1):
+        all_names = np.array(["{}/{}".format(i, j) for j in listdir("gen_image/carpet_blur/" + str(i))])
+        m = all_names.shape[0]
 
-#     timer.start("Loading raw training data")
-#     X_train, Y_train = d.load_raw_data(d.train_idx)
-#     timer.stop()
+        X = np.zeros((m, HEIGHT * WIDTH))
+        Y = np.zeros((m, WIDTH + 1), dtype='int')
 
-#     timer.start("Dumping")
-#     d.dump_data(X_train, Y_train, TRAIN_DATASET_FILE)
-#     timer.stop()
+        for k in range(m):
+            img_src = "gen_image/carpet_blur/" + all_names[k]
+            # load image as grayscale
+            img = cv2.imread(img_src, cv2.IMREAD_GRAYSCALE)
+            # flat image
+            img_flat = img.flatten() / 255.0  # normalize from [0, 255] to [0, 1]
+            X[k] = img_flat
+            Y[k, i] = 1
 
-#     timer.start("Loading raw validation data")
-#     X_val, Y_val = d.load_raw_data(d.val_idx)
-#     timer.stop()
+        X = X.reshape(m, HEIGHT, WIDTH, 1).astype('float32')
 
-#     timer.start("Dumping")
-#     d.dump_data(X_val, Y_val, VAL_DATASET_FILE)
-#     timer.stop()
+        with open("pkl_dataset/carpet_blur/{}".format(i), "wb") as f:
+            pickle.dump(X, f, protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump(Y, f, protocol=pickle.HIGHEST_PROTOCOL)

@@ -20,23 +20,21 @@ def build_model():
         nb_col=4,
         subsample=(2, 2),
         border_mode='valid',
-        dim_ordering='th',
-        input_shape=(1, HEIGHT, WIDTH),
+        input_shape=(HEIGHT, WIDTH, 1),
         activation='relu'
     ))
     # model.add(BatchNormalization())
-    model.add(MaxPooling2D(pool_size=(2, 2), dim_ordering='th'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
 
     model.add(Convolution2D(
         nb_filter=64,
         nb_row=3,
         nb_col=3,
         subsample=(1, 1),
-        dim_ordering='th',
         activation='relu'
     ))
     # model.add(BatchNormalization())
-    model.add(MaxPooling2D(pool_size=(2, 2), dim_ordering='th'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Flatten())
     model.add(Dense(2048, activation='relu'))
     model.add(Dropout(0.5))
@@ -76,7 +74,7 @@ if __name__ == "__main__":
     # deal with dataset
     timer = Timer()
     timer.start("Loading data")
-    d = Dataset("train_val_set_1481772215")
+    d = Dataset("pkl_dataset/carpet_blur/", "train_val_set_200000")
     X_train, Y_train = d.get_train_dataset()
     X_val, Y_val = d.get_val_dataset()
     timer.stop()
@@ -85,4 +83,4 @@ if __name__ == "__main__":
 
     train_model(m)
 
-    model_handler.save_model(m, 'deeplane_model')
+    model_handler.save_model(m, "trained_models/carpet_model")
