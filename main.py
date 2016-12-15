@@ -25,7 +25,7 @@ if __name__ == "__main__":
     with open(OUT_FILE, "w") as f:
         f.write("{0}\n".format(n_frames))
 
-    m = model_handler.load_model("deeplane_model")
+    m = model_handler.load_model("trained_models/carpet_model")
 
     timer = Timer()
 

@@ -33,7 +33,7 @@ def split_image(img, half_n_blks, blk_width, blk_height):
 def predict_lane_markings(blks, model):
     n_blks = len(blks)
     blks = np.array(blks)
-    blks = blks.reshape(n_blks, 1, blks.shape[1], blks.shape[2]).astype('float32')
+    blks = blks.reshape(n_blks, blks.shape[1], blks.shape[2], 1).astype('float32')
 
     labels = model.predict(blks, batch_size=n_blks, verbose=0)
 
