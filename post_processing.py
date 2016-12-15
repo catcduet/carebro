@@ -64,7 +64,7 @@ def fit_line(points, y0, y1):
     if len(points) < 1:
         return None
     vx, vy, cx, cy = cv2.fitLine(np.float32(
-        points), cv2.DIST_L2, 0, 0.01, 0.01)
+        points), cv2.DIST_HUBER, 0, 0.01, 0.01)
 
     if vy == 0:
         return None, None
@@ -75,7 +75,7 @@ def fit_line(points, y0, y1):
 
 
 def get_lane_center(left_pt0, left_pt1, right_pt0, right_pt1):
-    if left_pt0 or left_pt1 or right_pt0 or right_pt1 is None:
+    if not (left_pt0 and left_pt1 and right_pt0 and right_pt1):
         return (0, 0)
 
     m_x = (left_pt0[0] + left_pt1[0]) / 2
