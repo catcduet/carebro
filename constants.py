@@ -3,7 +3,7 @@ HEIGHT = 18
 WIDTH = 272
 
 CODEC = "XVID"
-DATASET_FOLDER = "gen_image/carpet/"
-PICKLE_DATASET = "pkl_dataset/carpet/"
+DATASET_FOLDER = "gen_image/wooden_sharp_200k/"
+PICKLE_DATASET = "pkl_dataset/wooden_sharp_200k/"
 
 OUT_FILE = "Contestant.txt"
