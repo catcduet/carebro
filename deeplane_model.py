@@ -76,7 +76,7 @@ if __name__ == "__main__":
     # deal with dataset
     timer = Timer()
     timer.start("Loading data")
-    d = Dataset(PICKLE_DATASET, "train_val_set_10000")
+    d = Dataset(PICKLE_DATASET, "train_val_set_200000")
     X_train, Y_train = d.get_train_dataset()
     X_val, Y_val = d.get_val_dataset()
     timer.stop()
@@ -85,4 +85,4 @@ if __name__ == "__main__":
 
     train_model(m)
 
-    model_handler.save_model(m, "trained_models/carpet_sharp_model")
+    model_handler.save_model(m, "trained_models/carpet_sharp_200k_model")
