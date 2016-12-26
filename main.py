@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
     filename, extension = os.path.splitext(video_path)
     out_video_path = filename + "_output" + extension
-    
+
     cap = cv2.VideoCapture(video_path)
     fps = int(cap.get(cv2.CAP_PROP_FPS))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     n_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fourcc = fourcc = cv2.VideoWriter_fourcc(*CODEC)
     out = cv2.VideoWriter(out_video_path, fourcc, fps, (width, height))
-    
+
     with open(OUT_FILE, "w") as f:
         f.write("{0}\n".format(n_frames))
 
@@ -32,7 +32,8 @@ if __name__ == "__main__":
     timer.start("Processing")
     for i in range(n_frames):
         _, img = cap.read()
-        img, center = process_image(img, m, HALF_N_BLKS, WIDTH, HEIGHT, debug=True, flip=True)
+        img, center = process_image(
+            img, m, HALF_N_BLKS, WIDTH, HEIGHT, debug=True, flip=False)
         # if 0xFF & cv2.waitKey(30) == 27:
         #     break
         cv2.waitKey(0)

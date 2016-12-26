@@ -37,7 +37,8 @@ def split_image(img, half_n_blks, blk_width, blk_height, flip):
 def predict_lane_markings(blks, model):
     n_blks = len(blks)
     blks = np.array(blks)
-    blks = blks.reshape(n_blks, blks.shape[1], blks.shape[2], 1).astype('float32')
+    blks = blks.reshape(n_blks, blks.shape[1], blks.shape[
+                        2], 1).astype('float32')
 
     labels = model.predict(blks, batch_size=n_blks, verbose=0)
 
@@ -98,6 +99,7 @@ def get_lane_center(left_pt0, left_pt1, right_pt0, right_pt1):
 
 def process_image(img, model, half_n_blks, blk_width, blk_height, debug=False, flip=True):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    ret, gray = cv2.threshold(gray, 140, 255, cv2.THRESH_BINARY)
 
     blks, coords = split_image(gray, half_n_blks, blk_width, blk_height, flip)
     labels = predict_lane_markings(blks, model)
@@ -129,7 +131,8 @@ def process_image(img, model, half_n_blks, blk_width, blk_height, debug=False, f
 
         for i, blk in enumerate(blks):
             colored_blk = cv2.cvtColor(blk, cv2.COLOR_GRAY2BGR)
-            cv2.putText(colored_blk, str(labels[i]), (12, 12), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0))
+            cv2.putText(colored_blk, str(
+                labels[i]), (12, 12), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0))
 
             if labels[i] != 0:
                 marking_pos = (labels[i] - 1, int(blk_height / 2))
