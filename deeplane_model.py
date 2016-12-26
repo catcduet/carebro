@@ -85,4 +85,4 @@ if __name__ == "__main__":
 
     train_model(m)
 
-    model_handler.save_model(m, "trained_models/wooden_sharp_200k_model")
+    model_handler.save_model(m, "trained_models/wooden_blur_200k_model")
