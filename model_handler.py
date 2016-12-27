@@ -1,10 +1,16 @@
+import numpy as np
+
 from keras.models import model_from_json
+from sklearn.metrics import classification_report,confusion_matrix
+
+from dataset import Dataset
+from constants import *
 
 
 def evaluate_model(model, X_test, Y_test):
     print("Evaluating...")
     loss, accuracy = model.evaluate(X_test, Y_test)
-    print('loss: {} - accuracy: {}'.format(loss, accuracy))
+    print('\nloss: {} - accuracy: {}'.format(loss, accuracy))
 
 
 def save_model(model, model_name):
@@ -32,3 +38,22 @@ def load_model(model_name):
     )
     print("Loaded model from disk")
     return loaded_model
+
+def g_confusion_matrix(model, X_test, Y_test):
+    y_pred = model.predict_classes(X_test)
+    print(y_pred)
+
+    p = model.predict_proba(X_test) # to predict probability
+
+    target_names = [str(i) for i in range(273)]
+    print('\n' + classification_report(np.argmax(Y_test, axis=1), y_pred, target_names=target_names))
+    print(confusion_matrix(np.argmax(Y_test, axis=1), y_pred))
+
+
+if __name__ == "__main__":
+    # change 3 string parameters to test different sets and models
+    d = Dataset("pkl_dataset/wooden_blur_10k/", "train_val_set_10000")
+    X_test, Y_test = d.get_train_dataset()
+
+    m = load_model('trained_models/wooden_blur_10k_model')
+    g_confusion_matrix(m, X_test, Y_test)
