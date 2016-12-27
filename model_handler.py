@@ -4,7 +4,7 @@ from keras.models import model_from_json
 def evaluate_model(model, X_test, Y_test):
     print("Evaluating...")
     loss, accuracy = model.evaluate(X_test, Y_test)
-    print('loss: {} - accuracy: {}', loss, accuracy)
+    print('loss: {} - accuracy: {}'.format(loss, accuracy))
 
 
 def save_model(model, model_name):
