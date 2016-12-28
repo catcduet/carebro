@@ -52,8 +52,8 @@ def g_confusion_matrix(model, X_test, Y_test):
 
 if __name__ == "__main__":
     # change 3 string parameters to test different sets and models
-    d = Dataset("pkl_dataset/wooden_blur_10k/", "train_val_set_10000")
-    X_test, Y_test = d.get_train_dataset()
+    d = Dataset("pkl_dataset/01/", "train_val_set_150000")
+    X_test, Y_test = d.get_val_dataset()
 
-    m = load_model('trained_models/wooden_blur_10k_model')
+    m = load_model('trained_models/video01_model')
     g_confusion_matrix(m, X_test, Y_test)

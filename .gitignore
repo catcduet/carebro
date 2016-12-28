@@ -90,6 +90,7 @@ ENV/
 # Rope project settings
 .ropeproject
 
+data/
 gen_image/
 video/
 pkl_dataset/
