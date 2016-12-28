@@ -24,6 +24,15 @@ class Timer:
         self.job = None
 
 
+class Margin:
+
+    def __init__(self, top, bottom, left, right):
+        self.top = top
+        self.bottom = bottom
+        self.left = left
+        self.right = right
+
+
 if __name__ == "__main__":
     timer = Timer()
     timer.start("Test")

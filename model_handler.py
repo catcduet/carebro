@@ -1,7 +1,7 @@
 import numpy as np
 
 from keras.models import model_from_json
-from sklearn.metrics import classification_report,confusion_matrix
+from sklearn.metrics import classification_report, confusion_matrix
 
 from dataset import Dataset
 from constants import *
@@ -39,14 +39,16 @@ def load_model(model_name):
     print("Loaded model from disk")
     return loaded_model
 
+
 def g_confusion_matrix(model, X_test, Y_test):
     y_pred = model.predict_classes(X_test)
     print(y_pred)
 
-    p = model.predict_proba(X_test) # to predict probability
+    p = model.predict_proba(X_test)  # to predict probability
 
     target_names = [str(i) for i in range(273)]
-    print('\n' + classification_report(np.argmax(Y_test, axis=1), y_pred, target_names=target_names))
+    print('\n' + classification_report(np.argmax(Y_test, axis=1),
+                                       y_pred, target_names=target_names))
     print(confusion_matrix(np.argmax(Y_test, axis=1), y_pred))
 
 

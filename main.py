@@ -1,46 +1,56 @@
-from post_processing import process_image, print_center
-from utils import Timer
+from post_processing import process_image
+from utils import Timer, Margin
 from constants import *
-import sys
 import os
 import cv2
 import model_handler
 import argparse
 
 
-if __name__ == "__main__":
-    video_path = sys.argv[1]
+def main(args):
+    video_path = args["video"]
+    cap = cv2.VideoCapture(video_path)
+
+    if not cap.isOpened():
+        print("[ERROR] Cannot open video.")
+        return
 
     filename, extension = os.path.splitext(video_path)
     out_video_path = filename + "_output" + extension
-
-    cap = cv2.VideoCapture(video_path)
     fps = int(cap.get(cv2.CAP_PROP_FPS))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     n_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fourcc = fourcc = cv2.VideoWriter_fourcc(*CODEC)
-    out = cv2.VideoWriter(out_video_path, fourcc, fps, (width, height))
+    out_video = cv2.VideoWriter(out_video_path, fourcc, fps, (width, height))
 
     with open(OUT_FILE, "w") as f:
         f.write("{0}\n".format(n_frames))
 
-    m = model_handler.load_model("trained_models/wooden_sharp_200k_model")
+    m = model_handler.load_model("trained_models/video01_model")
 
     timer = Timer()
 
-    timer.start("Processing")
-    for i in range(n_frames):
-        _, img = cap.read()
-        img, center = process_image(
-            img, m, HALF_N_BLKS, WIDTH, HEIGHT, debug=True, flip=False)
-        # if 0xFF & cv2.waitKey(30) == 27:
-        #     break
-        cv2.waitKey(0)
-        print_center(OUT_FILE, i, center)
-        out.write(img)
+    margin = Margin(288, 0, 88, 88)
+    stride = args["stride"]
 
+    for i in range(n_frames):
+        timer.start("Processing frame {}".format(str(i)))
+        _, img = cap.read()
+        out = process_image(img, m, WIDTH, HEIGHT, stride, margin)
+
+        cv2.imshow("Image", img)
+        cv2.imshow("Out", out)
+
+        timer.stop()
+
+        cv2.waitKey(0)
         if 0xFF & cv2.waitKey(30) == 27:
             break
 
-    timer.stop()
+
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser()
+    ap.add_argument("video", type=str, help="path to video")
+    ap.add_argument("-s", "--stride", type=int, help="window stride")
+    main(vars(ap.parse_args()))

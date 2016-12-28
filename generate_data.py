@@ -4,21 +4,12 @@ import argparse
 import os
 import uuid
 from constants import *
-from utils import Timer
+from utils import Timer, Margin
 
 
 def get_label(window, threshold):
     n_points = np.count_nonzero(window)
     return n_points >= threshold
-
-
-class Margin:
-
-    def __init__(self, top, bottom, left, right):
-        self.top = top
-        self.bottom = bottom
-        self.left = left
-        self.right = right
 
 
 def generate_data(img, truth, width, height, stride,

@@ -52,10 +52,10 @@ def train_model(model):
     n_epochs = 10
     # the training may be slow depending on your computer
     model.fit(X_train,
-            Y_train,
-            batch_size=batch_size,
-            nb_epoch=n_epochs,
-            validation_data=(X_val, Y_val))
+              Y_train,
+              batch_size=batch_size,
+              nb_epoch=n_epochs,
+              validation_data=(X_val, Y_val))
 
 if __name__ == "__main__":
     # fix random seed for reproducibility
