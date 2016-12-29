@@ -15,23 +15,23 @@ def build_model():
     print("Building the model...")
     model = Sequential()
     model.add(Convolution2D(
-        nb_filter=5,
-        nb_row=4,
-        nb_col=4,
+        nb_filter=20,
+        nb_row=5,
+        nb_col=5,
         subsample=(2, 2),
         border_mode='valid',
         input_shape=(HEIGHT, WIDTH, 1),
         activation='relu'
     ))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(MaxPooling2D(pool_size=(3, 3)))
 
     model.add(Flatten())
 
-    model.add(Dense(64, activation='relu'))
-    model.add(Dropout(0.25))
+    model.add(Dense(128, activation='relu'))
+    model.add(Dropout(0.5))
 
     model.add(Dense(64, activation='relu'))
-    model.add(Dropout(0.25))
+    model.add(Dropout(0.5))
 
     model.add(Dense(2, activation='softmax'))
 
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     # deal with dataset
     timer = Timer()
     timer.start("Loading data")
-    d = Dataset("pkl_dataset/03/")
+    d = Dataset("pkl_dataset/04/", "train_val_set_100000")
     X_train, Y_train = d.get_train_dataset()
     X_val, Y_val = d.get_val_dataset()
     timer.stop()
@@ -74,4 +74,4 @@ if __name__ == "__main__":
 
     train_model(m)
 
-    model_handler.save_model(m, "trained_models/video03_model")
+    model_handler.save_model(m, "trained_models/video04_model")
