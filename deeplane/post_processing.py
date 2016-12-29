@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from constants import *
 
 
 def split_image(img, half_n_blks, blk_width, blk_height, flip):
@@ -37,10 +38,9 @@ def split_image(img, half_n_blks, blk_width, blk_height, flip):
 def predict_lane_markings(blks, model):
     n_blks = len(blks)
     blks = np.array(blks)
-    blks = blks.reshape(n_blks, blks.shape[1], blks.shape[
-                        2], 1).astype('float32')
+    blks = blks.reshape(n_blks, HEIGHT, WIDTH, 1).astype('float32')
 
-    labels = model.predict(blks, batch_size=n_blks, verbose=0)
+    labels = model.predict(blks, batch_size=n_blks)
 
     labels = [np.argmax(label) for label in labels]
     print(labels)
@@ -97,12 +97,21 @@ def get_lane_center(left_pt0, left_pt1, right_pt0, right_pt1):
     return (cx, cy)
 
 
+def normalize(blks):
+    normalized_blks = []
+    for blk in blks:
+        normalized_blk = blk.flatten() / 255.0
+        normalized_blks.append(normalized_blk)
+
+    return normalized_blks
+
+
 def process_image(img, model, half_n_blks, blk_width, blk_height, debug=False, flip=True):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    ret, gray = cv2.threshold(gray, 140, 255, cv2.THRESH_BINARY)
 
     blks, coords = split_image(gray, half_n_blks, blk_width, blk_height, flip)
-    labels = predict_lane_markings(blks, model)
+    normalized_blks = normalize(blks)
+    labels = predict_lane_markings(normalized_blks, model)
     left_pts, right_pts = get_lane_marking_points(coords, labels, flip)
 
     upper_bound = img.shape[0]
