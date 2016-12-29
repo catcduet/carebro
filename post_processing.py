@@ -20,6 +20,7 @@ def get_windows(img, width, height, stride, margin):
             img_window = img[y_offset: y_offset + height,
                              x_offset: x_offset + width]
 
+            img_window = img_window.flatten() / 255.0
             windows.append(img_window)
             offsets.append((x_offset, y_offset))
 
@@ -33,10 +34,10 @@ def get_windows(img, width, height, stride, margin):
 def predict(windows, model):
     n_windows = len(windows)
     windows = np.array(windows)
-    windows = windows.reshape(n_windows, windows.shape[1],
-                              windows.shape[2], 1).astype('float32')
+    windows = windows.reshape(n_windows, HEIGHT,
+                              WIDTH, 1).astype('float32')
     predictions = model.predict(windows, batch_size=128)
-    predictions = [pred[1] for pred in predictions]
+    predictions = [np.argmax(pred) for pred in predictions]
     return predictions
 
 
