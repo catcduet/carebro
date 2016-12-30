@@ -64,6 +64,63 @@ def process_image(img, model, width, height, stride, margin):
     return out.astype(np.uint8)
 
 
+def non_maxima_suppression(src, sz):
+    """
+    Ported from this code: http://code.opencv.org/attachments/994/nms.cpp
+    """
+    M, N = src.shape[:2]
+    block = np.ones((2 * sz + 1, 2 * sz + 1), np.uint8) * 255
+    dst = np.zeros((M, N), np.uint8)
+
+    for m in range(0, M, sz + 1):
+        for n in range(0, N, sz + 1):
+            # get the maximal candidate within the block
+            ic_start = m
+            ic_end = min(m + sz + 1, M)
+            ic_size = ic_end - ic_start
+
+            jc_start = n
+            jc_end = min(n + sz + 1, N)
+            jc_size = jc_end - jc_start
+
+            patch = src[ic_start: ic_end, jc_start: jc_end]
+            _, vcmax, _, ijmax = cv2.minMaxLoc(patch)
+            cc = tuple(map(sum, zip(ijmax, (jc_start, ic_start))))
+
+            # search the neighbours centered around the candidate for the true
+            # maxima
+            in_start = max(cc[1] - sz, 0)
+            in_end = min(cc[1] + sz + 1, M)
+            in_size = in_end - in_start
+
+            jn_start = max(cc[0] - sz, 0)
+            jn_end = min(cc[0] + sz + 1, N)
+            jn_size = jn_end - jn_start
+
+            # mask out the block whose maxima we already know
+            blockmask = block[0: in_size, 0: jn_size].copy()
+
+            iis_start = ic_start - in_start
+            iis_end = min(ic_start - in_start + sz + 1, in_size)
+            iis_size = iis_end - iis_start
+
+            jis_start = jc_start - jn_start
+            jis_end = min(jc_start - jn_start + sz + 1, jn_size)
+            jis_size = jis_end - jis_start
+
+            blockmask[iis_start: iis_end, jis_start: jis_end] = np.zeros(
+                (iis_size, jis_size), np.uint8)
+
+            patch = src[in_start: in_end, jn_start: jn_end]
+            _, vnmax, _, _ = cv2.minMaxLoc(patch, blockmask)
+
+            # loose condition
+            if vcmax >= vnmax and vcmax != 0:
+                dst[cc[1], cc[0]] = 255
+
+    return dst
+
+
 if __name__ == "__main__":
     patch = np.ones((5, 5), np.uint8)
     patch = patch * 10 * 0.8

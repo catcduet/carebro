@@ -1,4 +1,4 @@
-from post_processing import process_image
+from post_processing import process_image, non_maxima_suppression
 from utils import Timer, Margin
 from constants import *
 import os
@@ -22,7 +22,8 @@ def main(args):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     n_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fourcc = fourcc = cv2.VideoWriter_fourcc(*CODEC)
-    out_video = cv2.VideoWriter(out_video_path, fourcc, fps, (width, height), isColor=False)
+    out_video = cv2.VideoWriter(
+        out_video_path, fourcc, fps, (width, height), isColor=False)
 
     with open(OUT_FILE, "w") as f:
         f.write("{0}\n".format(n_frames))
@@ -31,21 +32,25 @@ def main(args):
 
     timer = Timer()
 
-    margin = Margin(288, 0, 88, 88)
+    margin = Margin(384, 0, 88, 88)
     stride = args["stride"]
 
     for i in range(n_frames):
         timer.start("Processing frame {}".format(str(i)))
         _, img = cap.read()
         out = process_image(img, m, WIDTH, HEIGHT, stride, margin)
+        _, thresh = cv2.threshold(out, 150, 255, cv2.THRESH_TOZERO)
+        thin = non_maxima_suppression(thresh, 20)
 
         cv2.imshow("Image", img)
+        cv2.imshow("Thresh", thresh)
         cv2.imshow("Out", out)
+        cv2.imshow("Thin", thin)
 
         timer.stop()
 
         cv2.waitKey(0)
-        if 0xFF & cv2.waitKey(30) == 27:
+        if 0xFF & cv2.waitKey(5) == 27:
             break
 
 
