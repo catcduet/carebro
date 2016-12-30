@@ -22,12 +22,12 @@ def main(args):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     n_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fourcc = fourcc = cv2.VideoWriter_fourcc(*CODEC)
-    out_video = cv2.VideoWriter(out_video_path, fourcc, fps, (width, height))
+    out_video = cv2.VideoWriter(out_video_path, fourcc, fps, (width, height), isColor=False)
 
     with open(OUT_FILE, "w") as f:
         f.write("{0}\n".format(n_frames))
 
-    m = model_handler.load_model("trained_models/video04_model")
+    m = model_handler.load_model("trained_models/12345_100k")
 
     timer = Timer()
 
