@@ -25,7 +25,7 @@ if __name__ == "__main__":
     with open(OUT_FILE, "w") as f:
         f.write("{0}\n".format(n_frames))
 
-    m = model_handler.load_model("trained_models/wooden_sharp_200k_model")
+    m = model_handler.load_model("trained_models/carpet_sharp_200k_model")
 
     timer = Timer()
 
@@ -33,13 +33,11 @@ if __name__ == "__main__":
     for i in range(n_frames):
         _, img = cap.read()
         img, center = process_image(
-            img, m, HALF_N_BLKS, WIDTH, HEIGHT, debug=True, flip=False)
-        # if 0xFF & cv2.waitKey(30) == 27:
-        #     break
-        cv2.waitKey(0)
+            img, m, HALF_N_BLKS, WIDTH, HEIGHT, debug=True, flip=True)
         print_center(OUT_FILE, i, center)
         out.write(img)
 
+        cv2.waitKey(0)
         if 0xFF & cv2.waitKey(30) == 27:
             break
 
