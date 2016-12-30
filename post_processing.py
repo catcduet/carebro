@@ -41,10 +41,10 @@ def predict(windows, model):
     return predictions
 
 
-def calculate_out_map(out, predictions, offsets, width, height, margin, level):
+def calculate_out_map(out, predictions, offsets, width, height, margin):
     for i, offset in enumerate(offsets):
         patch = np.ones((height, width))
-        patch = (patch * level * predictions[i])
+        patch = (patch * predictions[i])
         out[offset[1]: offset[1] + height,
             offset[0]: offset[0] + width] += patch
 
@@ -58,7 +58,7 @@ def process_image(img, model, width, height, stride, margin):
     predictions = predict(windows, model)
     out = np.zeros(gray.shape)
     out = calculate_out_map(out, predictions, offsets,
-                            width, height, margin, LEVEL)
+                            width, height, margin)
     max_intensity = np.max(out)
     out = out / max_intensity * 255
     return out.astype(np.uint8)
