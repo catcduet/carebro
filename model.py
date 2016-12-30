@@ -15,23 +15,23 @@ def build_model():
     print("Building the model...")
     model = Sequential()
     model.add(Convolution2D(
-        nb_filter=20,
-        nb_row=5,
-        nb_col=5,
+        nb_filter=15,
+        nb_row=6,
+        nb_col=6,
         subsample=(2, 2),
         border_mode='valid',
         input_shape=(HEIGHT, WIDTH, 1),
         activation='relu'
     ))
-    model.add(MaxPooling2D(pool_size=(3, 3)))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
 
     model.add(Flatten())
 
     model.add(Dense(128, activation='relu'))
-    model.add(Dropout(0.5))
+    model.add(Dropout(0.25))
 
     model.add(Dense(64, activation='relu'))
-    model.add(Dropout(0.5))
+    model.add(Dropout(0.25))
 
     model.add(Dense(2, activation='softmax'))
 
@@ -49,7 +49,7 @@ def train_model(model):
     # how many examples to look at during each training iteration
     batch_size = 128
     # how many times to run through the full set of examples
-    n_epochs = 10
+    n_epochs = 30
     # the training may be slow depending on your computer
     model.fit(X_train,
               Y_train,
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     # deal with dataset
     timer = Timer()
     timer.start("Loading data")
-    d = Dataset("pkl_dataset/04/", "train_val_set_100000")
+    d = Dataset(PICKLE_DATASET + "345_100k/", "train_val_set_100000")
     X_train, Y_train = d.get_train_dataset()
     X_val, Y_val = d.get_val_dataset()
     timer.stop()
@@ -74,4 +74,6 @@ if __name__ == "__main__":
 
     train_model(m)
 
-    model_handler.save_model(m, "trained_models/video04_model")
+    name = input("Model's name or 'n': ")
+    if name != 'n':
+        model_handler.save_model(m, "trained_models/" + name)
