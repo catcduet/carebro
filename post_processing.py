@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 from constants import *
-from ransac import ransac
 
 
 def get_windows(img, width, height, stride, margin):
@@ -40,26 +39,6 @@ def predict(windows, model):
     predictions = model.predict(windows, batch_size=128)
     predictions = [np.argmax(pred) for pred in predictions]
     return predictions
-
-
-class Model:
-
-    def __init__(self, dist_type=cv2.DIST_L2):
-        self.dist_type = dist_type
-
-    def fit(self, data):
-        model = cv2.fitLine(data, self.dist_type, 0, 0.01, 0.01)
-        return model
-
-    def get_error(self, data, model):
-        x = np.vstack(data[:, 0])
-        y = np.vstack(data[:, 1])
-        a = model[0] / model[1]
-        b = model[3] - model[2] * a
-        y_fit = np.dot(x, np.array([a])) + np.ones(x.shape) * b
-        # sum squared error per row
-        err_per_point = np.sum((y - y_fit)**2, axis=1)
-        return err_per_point
 
 
 def get_split_point(heat_map, margin):
@@ -116,6 +95,21 @@ def calculate_heat_map(heat_map, predictions, offsets, width, height, margin):
     return heat_map.astype(np.uint8)
 
 
+def fit_line(points, y0, y1):
+    if len(points) < 1:
+        return None, None
+
+    vx, vy, cx, cy = cv2.fitLine(np.float32(
+        points), cv2.DIST_HUBER, 0, 0.01, 0.01)
+
+    if vy == 0:
+        return None, None
+
+    x0 = (y0 - cy) * vx / vy + cx
+    x1 = (y1 - cy) * vx / vy + cx
+    return (x0, y0), (x1, y1)
+
+
 def process_image(img, model, width, height, stride, margin, debug=True):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -126,10 +120,12 @@ def process_image(img, model, width, height, stride, margin, debug=True):
                                   width, height, margin)
 
     left_points, right_points = get_points(heat_map, margin)
-    model = Model()
 
-    left_line = ransac(left_points, model, 2, 200, 7e3, 5)
-    right_line = ransac(right_points, model, 2, 200, 7e3, 5)
+    upper_bound = img.shape[0]
+    lower_bound = margin.top
+
+    left_pt0, left_pt1 = fit_line(left_points, lower_bound, upper_bound)
+    right_pt0, right_pt1 = fit_line(right_points, lower_bound, upper_bound)
 
     if debug:
         x = get_split_point(heat_map, margin)
@@ -144,21 +140,19 @@ def process_image(img, model, width, height, stride, margin, debug=True):
         for point in right_points:
             cv2.circle(debug, tuple(point), 1, RED)
 
-        vx, vy, cx, cy = left_line
-        y0 = 576
-        y1 = 384
-        x0 = (y0 - cy) * vx / vy + cx
-        x1 = (y1 - cy) * vx / vy + cx
-        cv2.line(debug, (x0, y0), (x1, y1), GREEN)
+        if left_pt0 is not None and left_pt1 is not None:
+            cv2.line(debug, left_pt0, left_pt1, GREEN)
 
-        vx, vy, cx, cy = right_line
-        y0 = 576
-        y1 = 384
-        x0 = (y0 - cy) * vx / vy + cx
-        x1 = (y1 - cy) * vx / vy + cx
-        cv2.line(debug, (x0, y0), (x1, y1), GREEN)
+        if right_pt0 is not None and right_pt1 is not None:
+            cv2.line(debug, right_pt0, right_pt1, GREEN)
 
         cv2.imshow("Debug", debug)
+
+    if left_pt0 is not None and left_pt1 is not None:
+        cv2.line(img, left_pt0, left_pt1, RED)
+
+    if right_pt0 is not None and right_pt1 is not None:
+        cv2.line(img, right_pt0, right_pt1, RED)
 
     return img
 
