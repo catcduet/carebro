@@ -118,7 +118,7 @@ if __name__ == "__main__":  # process raw data
         print("Mixing...")
         all_names = []
         # mix 5 image data of 5 videos
-        for i in range(1, 6):
+        for i in [1,2,3,4,5]:
             # read 10k random file names in each label folder of each video
             random_set = random.sample(listdir(DATA_FOLDER + "0{}/{}/".format(i, j)), 10000)
             all_names = np.append(all_names, ["0{}/{}/{}".format(i, j, k) for k in random_set])
@@ -141,6 +141,6 @@ if __name__ == "__main__":  # process raw data
         X = X.reshape(m, HEIGHT, WIDTH, 1).astype('float32')
 
         print("Saving...")
-        with open("{}{}".format(PICKLE_DATASET + "12345_100k/", j), "wb") as f:
+        with open("{}{}".format(PICKLE_DATASET + "12345_100k_10_5_7/", j), "wb") as f:
             pickle.dump(X, f, protocol=pickle.HIGHEST_PROTOCOL)
             pickle.dump(Y, f, protocol=pickle.HIGHEST_PROTOCOL)

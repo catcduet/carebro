@@ -28,7 +28,7 @@ def main(args):
     with open(OUT_FILE, "w") as f:
         f.write("{0}\n".format(n_frames))
 
-    m = model_handler.load_model("trained_models/12345_100k")
+    m = model_handler.load_model("trained_models/12345_100k_10_5_7")
 
     timer = Timer()
 
@@ -41,6 +41,8 @@ def main(args):
         out = process_image(img, m, WIDTH, HEIGHT, stride, margin)
 
         cv2.imshow("Output", out)
+
+        out_video.write(out)
 
         timer.stop()
 
