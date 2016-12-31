@@ -39,17 +39,12 @@ def main(args):
         timer.start("Processing frame {}".format(str(i)))
         _, img = cap.read()
         out = process_image(img, m, WIDTH, HEIGHT, stride, margin)
-        _, thresh = cv2.threshold(out, 150, 255, cv2.THRESH_TOZERO)
-        thin = non_maxima_suppression(thresh, 20)
 
-        cv2.imshow("Image", img)
-        cv2.imshow("Thresh", thresh)
-        cv2.imshow("Out", out)
-        cv2.imshow("Thin", thin)
+        cv2.imshow("Output", out)
 
         timer.stop()
 
-        # cv2.waitKey(0)
+        cv2.waitKey(0)
         if 0xFF & cv2.waitKey(5) == 27:
             break
 

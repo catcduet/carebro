@@ -96,3 +96,4 @@ video/
 pkl_dataset/
 Contestant.txt
 test.py
+.vscode/

@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from constants import *
+from ransac import ransac
 
 
 def get_windows(img, width, height, stride, margin):
@@ -41,28 +42,125 @@ def predict(windows, model):
     return predictions
 
 
-def calculate_out_map(out, predictions, offsets, width, height, margin):
+class Model:
+
+    def __init__(self, dist_type=cv2.DIST_L2):
+        self.dist_type = dist_type
+
+    def fit(self, data):
+        model = cv2.fitLine(data, self.dist_type, 0, 0.01, 0.01)
+        return model
+
+    def get_error(self, data, model):
+        x = np.vstack(data[:, 0])
+        y = np.vstack(data[:, 1])
+        a = model[0] / model[1]
+        b = model[3] - model[2] * a
+        y_fit = np.dot(x, np.array([a])) + np.ones(x.shape) * b
+        # sum squared error per row
+        err_per_point = np.sum((y - y_fit)**2, axis=1)
+        return err_per_point
+
+
+def get_split_point(heat_map, margin):
+    # TODO: somehow split 2 lane markings
+    return 360
+
+
+def get_points(heat_map, margin):
+    left_points = []
+    right_points = []
+
+    left = margin.left
+    right = heat_map.shape[1] - margin.right
+    bottom = heat_map.shape[0] - margin.bottom
+    top = margin.top
+
+    split_point = get_split_point(heat_map, margin)
+
+    r = 2
+    sz = 2 * r + 1
+    z = sz * sz * 255.0
+
+    integral = cv2.integral(heat_map)
+
+    for x in range(left, right, sz):
+        for y in range(top, bottom, sz):
+            y1 = min(y + sz, bottom)
+            x1 = min(x + sz, bottom)
+            maybe_point = (integral[y][x] + integral[y1][x1] -
+                           integral[y][x1] - integral[y1][x]) / z
+
+            # maybe_point = heat_map[y][x] / 255.0
+            rand = np.random.random()
+            if maybe_point > rand:
+                if x > split_point:
+                    right_points.append([x, y])
+                else:
+                    left_points.append([x, y])
+    return np.array(left_points), np.array(right_points)
+
+
+def calculate_heat_map(heat_map, predictions, offsets, width, height, margin):
     for i, offset in enumerate(offsets):
         patch = np.ones((height, width)) * predictions[i]
-        out[offset[1]: offset[1] + height,
-            offset[0]: offset[0] + width] += patch
+        heat_map[offset[1]: offset[1] + height,
+                 offset[0]: offset[0] + width] += patch
 
-    max_intensity = np.max(out)
-    out = out / max_intensity * 255
+    max_intensity = np.max(heat_map)
+    heat_map = heat_map / max_intensity * 255
 
-    return out.astype(np.uint8)
+    _, heat_map = cv2.threshold(
+        heat_map, HEAT_MAP_THRESH, 255, cv2.THRESH_TOZERO)
+
+    return heat_map.astype(np.uint8)
 
 
-def process_image(img, model, width, height, stride, margin):
+def process_image(img, model, width, height, stride, margin, debug=True):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     windows, offsets = get_windows(gray, width, height, stride, margin)
     predictions = predict(windows, model)
-    out = np.zeros(gray.shape)
-    out = calculate_out_map(out, predictions, offsets,
-                            width, height, margin)
+    heat_map = np.zeros(gray.shape)
+    heat_map = calculate_heat_map(heat_map, predictions, offsets,
+                                  width, height, margin)
 
-    return out
+    left_points, right_points = get_points(heat_map, margin)
+    model = Model()
+
+    left_line = ransac(left_points, model, 2, 200, 7e3, 5)
+    right_line = ransac(right_points, model, 2, 200, 7e3, 5)
+
+    if debug:
+        x = get_split_point(heat_map, margin)
+        y = margin.top
+
+        debug = np.zeros((*gray.shape, 3))
+        cv2.line(debug, (x, y), (x, 576), WHITE)
+        cv2.line(debug, (0, y), (720, y), WHITE)
+
+        for point in left_points:
+            cv2.circle(debug, tuple(point), 1, BLUE)
+        for point in right_points:
+            cv2.circle(debug, tuple(point), 1, RED)
+
+        vx, vy, cx, cy = left_line
+        y0 = 576
+        y1 = 384
+        x0 = (y0 - cy) * vx / vy + cx
+        x1 = (y1 - cy) * vx / vy + cx
+        cv2.line(debug, (x0, y0), (x1, y1), GREEN)
+
+        vx, vy, cx, cy = right_line
+        y0 = 576
+        y1 = 384
+        x0 = (y0 - cy) * vx / vy + cx
+        x1 = (y1 - cy) * vx / vy + cx
+        cv2.line(debug, (x0, y0), (x1, y1), GREEN)
+
+        cv2.imshow("Debug", debug)
+
+    return img
 
 
 def non_maxima_suppression(src, sz):

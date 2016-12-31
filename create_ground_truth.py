@@ -5,11 +5,6 @@ import argparse
 from math import sqrt
 from constants import *
 
-
-BLUE = (255, 0, 0)
-GREEN = (0, 255, 0)
-RED = (0, 0, 255)
-WHITE = (255, 255, 255)
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 WINDOW_NAME = "Labeling"
 CTRL_PT_RADIUS = 10
