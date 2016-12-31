@@ -49,7 +49,7 @@ def main(args):
 
         timer.stop()
 
-        cv2.waitKey(0)
+        # cv2.waitKey(0)
         if 0xFF & cv2.waitKey(5) == 27:
             break
 
@@ -57,5 +57,6 @@ def main(args):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("video", type=str, help="path to video")
-    ap.add_argument("-s", "--stride", type=int, help="window stride")
+    ap.add_argument("-s", "--stride", type=int,
+                    default=5, help="window stride")
     main(vars(ap.parse_args()))
