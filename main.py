@@ -28,11 +28,11 @@ def main(args):
     with open(OUT_FILE, "w") as f:
         f.write("{0}\n".format(n_frames))
 
-    m = model_handler.load_model("trained_models/12345_100k_10_5_7")
+    m = model_handler.load_model("trained_models/12345_100k_30_5_13")
 
     timer = Timer()
 
-    margin = Margin(384, 0, 88, 88)
+    margin = Margin(432, 0, 88, 88)
     stride = args["stride"]
 
     for i in range(n_frames):

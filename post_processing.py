@@ -37,7 +37,13 @@ def predict(windows, model):
     windows = windows.reshape(n_windows, HEIGHT,
                               WIDTH, 1).astype('float32')
     predictions = model.predict(windows, batch_size=128)
-    predictions = [np.argmax(pred) for pred in predictions]
+
+    # returns 1 if window is marking, -1 otherwise
+    # predictions = [2 * np.argmax(pred) - 1 for pred in predictions]
+
+    # returns (marking probability) - (non-marking probability)
+    predictions = [pred[1] - pred[0] for pred in predictions]
+
     return predictions
 
 
@@ -59,24 +65,26 @@ def get_points(heat_map, margin):
 
     r = 2
     sz = 2 * r + 1
-    z = sz * sz * 255.0
+    z = sz * sz * 255
 
     integral = cv2.integral(heat_map)
 
     for x in range(left, right, sz):
         for y in range(top, bottom, sz):
-            y1 = min(y + sz, bottom)
             x1 = min(x + sz, bottom)
+            y1 = min(y + sz, bottom)
+            cx = int((x1 + x) / 2)
+            cy = int((y1 + y) / 2)
             maybe_point = (integral[y][x] + integral[y1][x1] -
                            integral[y][x1] - integral[y1][x]) / z
 
-            # maybe_point = heat_map[y][x] / 255.0
-            rand = np.random.random()
+            maybe_point = heat_map[y][x] / 255
+            rand = np.random.random() * 0
             if maybe_point > rand:
                 if x > split_point:
-                    right_points.append([x, y])
+                    right_points.append([cx, cy])
                 else:
-                    left_points.append([x, y])
+                    left_points.append([cx, cy])
     return np.array(left_points), np.array(right_points)
 
 
@@ -86,11 +94,9 @@ def calculate_heat_map(heat_map, predictions, offsets, width, height, margin):
         heat_map[offset[1]: offset[1] + height,
                  offset[0]: offset[0] + width] += patch
 
+    # clips heat map to [0, 255]
     max_intensity = np.max(heat_map)
-    heat_map = heat_map / max_intensity * 255
-
-    _, heat_map = cv2.threshold(
-        heat_map, HEAT_MAP_THRESH, 255, cv2.THRESH_TOZERO)
+    heat_map = heat_map / max_intensity * 255 * (heat_map > 0)
 
     return heat_map.astype(np.uint8)
 
@@ -118,8 +124,10 @@ def process_image(img, model, width, height, stride, margin, debug=True):
     heat_map = np.zeros(gray.shape)
     heat_map = calculate_heat_map(heat_map, predictions, offsets,
                                   width, height, margin)
+    _, thresh = cv2.threshold(
+        heat_map, HEAT_MAP_THRESH, 255, cv2.THRESH_TOZERO)
 
-    left_points, right_points = get_points(heat_map, margin)
+    left_points, right_points = get_points(thresh, margin)
 
     upper_bound = img.shape[0]
     lower_bound = margin.top
@@ -146,6 +154,7 @@ def process_image(img, model, width, height, stride, margin, debug=True):
         if right_pt0 is not None and right_pt1 is not None:
             cv2.line(debug, right_pt0, right_pt1, GREEN)
 
+        cv2.imshow("Heat Map", heat_map)
         cv2.imshow("Debug", debug)
 
     if left_pt0 is not None and left_pt1 is not None:
