@@ -116,6 +116,27 @@ def fit_line(points, y0, y1):
     return (x0, y0), (x1, y1)
 
 
+def get_lane_center(left_pt0, left_pt1, right_pt0, right_pt1):
+    m_x = (left_pt0[0] + left_pt1[0]) / 2
+    m_y = (left_pt0[1] + left_pt1[1]) / 2
+    m_u = (right_pt0[0] + right_pt1[0]) / 2
+    m_v = (right_pt0[1] + right_pt1[1]) / 2
+
+    cx = (m_x + m_u) / 2
+    cy = (m_y + m_v) / 2
+
+    cx = int(cx)
+    cy = int(cy)
+
+    return (cx, cy)
+
+
+def print_center(filename, index, center):
+    with open(filename, "a") as f:
+        line = "{0} {1} {2}\n".format(index, *center)
+        f.write(line)
+
+
 def process_image(img, model, width, height, stride, margin, debug=True):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -134,6 +155,12 @@ def process_image(img, model, width, height, stride, margin, debug=True):
 
     left_pt0, left_pt1 = fit_line(left_points, lower_bound, upper_bound)
     right_pt0, right_pt1 = fit_line(right_points, lower_bound, upper_bound)
+
+    # get lane's center
+    if (left_pt0 and left_pt1 and right_pt0 and right_pt1):
+        center = get_lane_center(left_pt0, left_pt1, right_pt0, right_pt1)
+    else:
+        center = (0, 504)  # y is fixed
 
     if debug:
         x = get_split_point(heat_map, margin)
@@ -163,7 +190,7 @@ def process_image(img, model, width, height, stride, margin, debug=True):
     if right_pt0 is not None and right_pt1 is not None:
         cv2.line(img, right_pt0, right_pt1, RED)
 
-    return img
+    return img, center
 
 
 def non_maxima_suppression(src, sz):
