@@ -41,11 +41,12 @@ def main(args):
     recent_centers = []  # some number of recent center points
     default_center = (333, 504)  # center of the video
     threshold_distance = 100  # pixels to be considered noisy (not movement)
+    trusted_num_points = 100  # number of points to be considered trustful
 
     for i in range(n_frames):
         timer.start("Processing frame {}".format(str(i)))
         _, img = cap.read()
-        out, raw_center = process_image(img, m, WIDTH, HEIGHT, stride, margin)
+        out, raw_center, left_points, right_points = process_image(img, m, WIDTH, HEIGHT, stride, margin)
         
         # Perform center tracking
         mean = None
@@ -70,7 +71,13 @@ def main(args):
             elif gmean != 0 and abs(mean - gmean) > threshold_distance:  # too vary, can't be movement
                 center = (int(gmean), default_center[1])  # use global mean
             else:  # having both measurement and prediction
-                center = (int((mean + raw_center[0]) / 2), default_center[1])
+                alpha = 0.5  # trust degree of measurement
+                a = len(left_points) / len(right_points)  # ratio between 2 point sets' length
+                b = len(left_points) / trusted_num_points
+                c = len(right_points) / trusted_num_points
+                score = (b + c) * a
+                alpha = score if score <= 1 else 1
+                center = (int((1-alpha)*mean + alpha*raw_center[0]), default_center[1])
             
             # update the recent_centers list
             if len(recent_centers) == 5:
@@ -83,6 +90,7 @@ def main(args):
             count_gmean += 1
 
         # debugging
+        # print(len(left_points), len(right_points))
         # print(center[0], raw_center[0])
         # print(recent_centers)
         # print(mean, gmean)

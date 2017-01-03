@@ -190,7 +190,7 @@ def process_image(img, model, width, height, stride, margin, debug=True):
     if right_pt0 is not None and right_pt1 is not None:
         cv2.line(img, right_pt0, right_pt1, RED)
 
-    return img, center
+    return img, center, left_points, right_points
 
 
 def non_maxima_suppression(src, sz):
