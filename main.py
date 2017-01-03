@@ -1,4 +1,4 @@
-from post_processing import process_image, non_maxima_suppression, print_center
+from post_processing import process_image, non_maxima_suppression, print_center, center_tracking
 from utils import Timer, Margin
 from constants import *
 import os
@@ -36,67 +36,17 @@ def main(args):
     margin = Margin(432, 0, 88, 88)
     stride = args["stride"]
 
-    gmean = 0  # global mean
+    gmean = 0
     count_gmean = 0
-    recent_centers = []  # some number of recent center points
-    default_center = (333, 504)  # center of the video
-    threshold_distance = 100  # pixels to be considered noisy (not movement)
-    trusted_num_points = 100  # number of points to be considered trustful
-
+    recent_centers = []
+    
     for i in range(n_frames):
         timer.start("Processing frame {}".format(str(i)))
         _, img = cap.read()
         out, raw_center, left_points, right_points = process_image(img, m, WIDTH, HEIGHT, stride, margin)
         
-        # Perform center tracking
-        mean = None
-        center = None
-        if len(recent_centers) == 0:
-            if raw_center[0] == 0:
-                center = default_center
-                # don't add to recent_centers so this "fake" center won't effect prediction
-            else:
-                recent_centers.append(raw_center[0])  # first real center
-                center = raw_center
-                gmean = raw_center[0]
-                count_gmean += 1
-        else:
-            mean = np.mean(recent_centers)
-            # measurement is unknown or too vary (can't be movement)
-            if raw_center[0] == 0 or abs(raw_center[0] - mean) > threshold_distance:
-                center = (int(mean), default_center[1])  # use prediction (mean)
-                #  mean doesn't change because using prediction is somewhat "fake"
-                continue
+        center = center_tracking(img, recent_centers, gmean, count_gmean, raw_center, left_points, right_points)
 
-            elif gmean != 0 and abs(mean - gmean) > threshold_distance:  # too vary, can't be movement
-                center = (int(gmean), default_center[1])  # use global mean
-            else:  # having both measurement and prediction
-                alpha = 0.5  # trust degree of measurement
-                a = len(left_points) / len(right_points)  # ratio between 2 point sets' length
-                b = len(left_points) / trusted_num_points
-                c = len(right_points) / trusted_num_points
-                score = (b + c) * a
-                alpha = score if score <= 1 else 1
-                center = (int((1-alpha)*mean + alpha*raw_center[0]), default_center[1])
-            
-            # update the recent_centers list
-            if len(recent_centers) == 5:
-                # remove element that varies the most from the current center point
-                recent_centers.pop(np.argmax([abs(k - center[0]) for k in recent_centers]))
-            recent_centers.append(center[0])
-            
-            # update global mean
-            gmean = (gmean * count_gmean + center[0]) / (count_gmean + 1)
-            count_gmean += 1
-
-        # debugging
-        # print(len(left_points), len(right_points))
-        # print(center[0], raw_center[0])
-        # print(recent_centers)
-        # print(mean, gmean)
-
-        cv2.circle(img, raw_center, 4, RED, 2)
-        cv2.circle(img, center, 4, GREEN, 2)
         print_center(OUT_FILE, i, center)
 
         cv2.imshow("Output", out)

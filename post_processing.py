@@ -249,6 +249,66 @@ def non_maxima_suppression(src, sz):
 
     return dst
 
+def center_tracking(img, recent_centers, gmean, count_gmean, raw_center, left_points, right_points,
+                    threshold_distance=100, trusted_num_points=100, debug=True):
+    # threshold_distance: pixels to be considered noisy (not movement)
+    # trusted_num_points: number of points to be considered trustful
+    # recent_centers: some number of recent center points
+    # gmean: global mean
+    # count_gmean
+    default_center = (333, 504)  # center of the video
+    
+    # Perform center tracking
+    mean = None
+    center = None
+    if len(recent_centers) == 0:
+        if raw_center[0] == 0:
+            center = default_center
+            # don't add to recent_centers so this "fake" center won't effect prediction
+        else:
+            recent_centers.append(raw_center[0])  # first real center
+            center = raw_center
+            gmean = raw_center[0]
+            count_gmean += 1
+    else:
+        mean = np.mean(recent_centers)
+        # measurement is unknown or too vary (can't be movement)
+        if raw_center[0] == 0 or abs(raw_center[0] - mean) > threshold_distance:
+            center = (int(mean), default_center[1])  # use prediction (mean)
+            #  mean doesn't change because using prediction is somewhat "fake"
+            update_mean = False
+
+        elif gmean != 0 and abs(mean - gmean) > threshold_distance:  # too vary, can't be movement
+            center = (int(gmean), default_center[1])  # use global mean
+            update_mean = True
+
+        else:  # having both measurement and prediction
+            alpha = 0.5  # trust degree of measurement
+            a = len(left_points) / len(right_points)  # ratio between 2 point sets' length
+            b = len(left_points) / trusted_num_points
+            c = len(right_points) / trusted_num_points
+            score = (b + c) * a
+            alpha = score if score <= 1 else 1
+            center = (int((1-alpha)*mean + alpha*raw_center[0]), default_center[1])
+            update_mean = True
+        
+        if update_mean:
+            # update the recent_centers list
+            if len(recent_centers) == 5:
+                # remove element that varies the most from the current center point
+                recent_centers.pop(np.argmax([abs(k - center[0]) for k in recent_centers]))
+            recent_centers.append(center[0])
+            
+            # update global mean
+            gmean = (gmean * count_gmean + center[0]) / (count_gmean + 1)
+            count_gmean += 1
+
+    # show centers if debugging
+    if debug:
+        cv2.circle(img, raw_center, 4, RED, 2)
+        cv2.circle(img, center, 4, GREEN, 2)
+    return center
+
 
 if __name__ == "__main__":
     patch = np.ones((5, 5), np.uint8)
