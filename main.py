@@ -1,4 +1,4 @@
-from post_processing import process_image, non_maxima_suppression, print_center, center_tracking
+from post_processing import PostProcessing, center_tracking, print_center
 from utils import Timer, Margin
 from constants import *
 import os
@@ -39,13 +39,17 @@ def main(args):
     gmean = 0
     count_gmean = 0
     recent_centers = []
-    
+
+    pp = PostProcessing(m, WIDTH, HEIGHT, stride, margin, width, height)
+
     for i in range(n_frames):
         timer.start("Processing frame {}".format(str(i)))
         _, img = cap.read()
-        out, raw_center, left_points, right_points = process_image(img, m, WIDTH, HEIGHT, stride, margin)
-        
-        center = center_tracking(img, recent_centers, gmean, count_gmean, raw_center, left_points, right_points)
+
+        out, raw_center, left_points, right_points = pp.process(img)
+
+        center = center_tracking(img, recent_centers, gmean, count_gmean,
+                                 raw_center, left_points, right_points)
 
         print_center(OUT_FILE, i, center)
 

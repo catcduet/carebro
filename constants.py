@@ -9,6 +9,11 @@ PICKLE_DATASET = "pkl_dataset/"
 
 HEAT_MAP_THRESH = 125
 
+ROI_WIDTH = 80
+
+PI = 3.141592653589793
+ANGLE_THRESH = 15 * PI / 180
+
 OUT_FILE = "Contestant.txt"
 
 BLUE = (255, 0, 0)
