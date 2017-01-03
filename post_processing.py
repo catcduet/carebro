@@ -229,7 +229,7 @@ class PostProcessing:
             rroi.set_attributes(split_point, rroi_width)
 
         # relates to density of points
-        r = 2
+        r = POINT_DENSITY
         sz = 2 * r + 1
         z = sz * sz * 255
 
@@ -250,7 +250,7 @@ class PostProcessing:
                                    integral[y][x1] - integral[y1][x]) / z
 
                     # maybe_point = heat_map[y][x] / 255
-                    threshold = 0.2
+                    threshold = POINT_THRESH
                     if maybe_point > threshold:
                         points.append([cx, cy])
 
