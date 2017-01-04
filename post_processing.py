@@ -384,10 +384,14 @@ def center_tracking(img, recent_centers, gmean, count_gmean, raw_center,
         else:  # having both measurement and prediction
             alpha = 0.5  # trust degree of measurement
             # ratio between 2 point sets' length
-            a = (len(left_points) /
-                 (len(right_points) + 1e-7))     # FIXME: division by 0
-            b = len(left_points) / trusted_num_points
-            c = len(right_points) / trusted_num_points
+            len_left = len(left_points)
+            len_right = len(right_points)
+            if len_left == 0 or len_right == 0:
+            	a = 0
+            else:
+            	a = len_left / len_right if  len_left < len_right else len_right / len_left
+            b = len_left / trusted_num_points
+            c = len_right / trusted_num_points
             score = (b + c) * a
             alpha = score if score <= 1 else 1
             center = (int((1 - alpha) * mean + alpha *
