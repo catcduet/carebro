@@ -34,11 +34,21 @@ class ROI:
             return False, angle
 
         # calculate angle between two vectors of two frames
-        cosin = self.vx * vx + self.vy * vy
-        angle = np.arccos(cosin)
-        print("angle diff: ", angle * 180 / PI)
-        if angle > ANGLE_THRESH and not self.dirty:    # noise
+        # cosin = self.vx * vx + self.vy * vy
+        # angle = np.arccos(cosin)
+
+        # calculate angle between Oy
+        angle = np.arccos(vy)
+
+        # angle smaller than 90 degree
+        absolute_angle = np.arccos(abs(vy))
+
+        print("angle (line, Oy): ", angle * 180 / PI,
+              "abs_angle: ", absolute_angle * 180 / PI)
+
+        if absolute_angle > ANGLE_THRESH:    # noise
             return False, angle
+
         self.width = int(abs(width / vy))
         self.vx = vx
         self.vy = vy
@@ -121,6 +131,7 @@ class PostProcessing:
 
             if not (left_ok and right_ok):  # noise
                 # TODO: handle noise
+                print(left_ok, right_ok)
                 dirty = True
 
             left_pt0, left_pt1 = get_endpoints(
@@ -296,7 +307,7 @@ class PostProcessing:
             sum_rout = (integral[t][rout] + integral[b][r] -
                         integral[t][r] - integral[b][rout])
 
-        split_point = lin if sum_lin < sum_rin else rin
+        split_point = lin if 0 < sum_lin < sum_rin else rin
         return split_point
 
 
@@ -387,9 +398,9 @@ def center_tracking(img, recent_centers, gmean, count_gmean, raw_center,
             len_left = len(left_points)
             len_right = len(right_points)
             if len_left == 0 or len_right == 0:
-            	a = 0
+                a = 0
             else:
-            	a = len_left / len_right if len_left < len_right else len_right / len_left
+                a = len_left / len_right if len_left < len_right else len_right / len_left
             b = len_left / trusted_num_points
             c = len_right / trusted_num_points
             score = (b + c) * a
