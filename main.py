@@ -29,7 +29,7 @@ def main(args):
     with open(OUT_FILE, "w") as f:
         f.write("{0}\n".format(n_frames))
 
-    m = model_handler.load_model("trained_models/12345_100k_30_5_13")
+    m = model_handler.load_model("trained_models/12345_400k_30_5_13")
 
     timer = Timer()
 

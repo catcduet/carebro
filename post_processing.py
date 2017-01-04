@@ -389,7 +389,7 @@ def center_tracking(img, recent_centers, gmean, count_gmean, raw_center,
             if len_left == 0 or len_right == 0:
             	a = 0
             else:
-            	a = len_left / len_right if  len_left < len_right else len_right / len_left
+            	a = len_left / len_right if len_left < len_right else len_right / len_left
             b = len_left / trusted_num_points
             c = len_right / trusted_num_points
             score = (b + c) * a

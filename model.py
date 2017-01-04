@@ -65,7 +65,7 @@ if __name__ == "__main__":
     # deal with dataset
     timer = Timer()
     timer.start("Loading data")
-    d = Dataset(PICKLE_DATASET + "12345_100k/", "train_val_set_100000")
+    d = Dataset(PICKLE_DATASET + "12345_400k_30_5_13/", "train_val_set_400000")
     X_train, Y_train = d.get_train_dataset()
     X_val, Y_val = d.get_val_dataset()
     timer.stop()

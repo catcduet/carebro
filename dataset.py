@@ -83,36 +83,6 @@ class Dataset():
         self.val_idx = obj["val_idx"]
 
 
-# if __name__ == "__main__":  # process raw data and pickle it
-#     video = input("Video number? 0")
-#     video = "0" + video + "/"
-#     # read all file names in folder
-#     folder = DATA_FOLDER + video
-#     for i in range(2):
-#         random_set = random.sample(listdir(folder + str(i)), 50000)
-#         all_names = np.array(["{}/{}".format(i, j) for j in random_set])
-#         m = all_names.shape[0]
-
-#         X = np.zeros((m, HEIGHT * WIDTH))
-#         Y = np.zeros((m, 2), dtype='int')
-
-#         for k in range(m):
-#             img_src = folder + all_names[k]
-#             # load image as grayscale
-#             img = cv2.imread(img_src, cv2.IMREAD_GRAYSCALE)
-#             # flat image
-#             img_flat = img.flatten() / 255.0  # normalize from [0, 255] to [0, 1]
-#             X[k] = img_flat
-#             Y[k, i] = 1
-
-#         X = X.reshape(m, HEIGHT, WIDTH, 1).astype('float32')
-
-#         print("Saving...")
-#         with open("{}{}{}".format(PICKLE_DATASET, video, i), "wb") as f:
-#             pickle.dump(X, f, protocol=pickle.HIGHEST_PROTOCOL)
-#             pickle.dump(Y, f, protocol=pickle.HIGHEST_PROTOCOL)
-
-
 if __name__ == "__main__":  # process raw data
     for j in range(2):
         print("Mixing...")
@@ -120,9 +90,8 @@ if __name__ == "__main__":  # process raw data
         # mix 5 image data of 5 videos
         for i in [1,2,3,4,5]:
             # read 10k random file names in each label folder of each video
-            random_set = random.sample(listdir(DATA_FOLDER + "0{}/{}/".format(i, j)), 10000)
+            random_set = random.sample(listdir(DATA_FOLDER + "0{}/{}/".format(i, j)), 40000)
             all_names = np.append(all_names, ["0{}/{}/{}".format(i, j, k) for k in random_set])
-        print(all_names.shape)
         print("Processing...")
         m = all_names.shape[0]
 
@@ -141,6 +110,6 @@ if __name__ == "__main__":  # process raw data
         X = X.reshape(m, HEIGHT, WIDTH, 1).astype('float32')
 
         print("Saving...")
-        with open("{}{}".format(PICKLE_DATASET + "12345_100k_10_5_7/", j), "wb") as f:
+        with open("{}{}".format(PICKLE_DATASET + "12345_400k_30_5_13/", j), "wb") as f:
             pickle.dump(X, f, protocol=pickle.HIGHEST_PROTOCOL)
             pickle.dump(Y, f, protocol=pickle.HIGHEST_PROTOCOL)
