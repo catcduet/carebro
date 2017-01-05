@@ -94,6 +94,8 @@ class PostProcessing:
         self.top = margin.top
         self.left_roi = ROI(self.left, self.right, self.top, self.bottom)
         self.right_roi = ROI(self.left, self.right, self.top, self.bottom)
+        self.saved_left_line = None
+        self.saved_right_line = None
 
     def process(self, img, debug=True):
         if debug:
@@ -130,9 +132,14 @@ class PostProcessing:
             right_ok, angle = self.right_roi.update(right_line, ROI_WIDTH)
 
             if not (left_ok and right_ok):  # noise
-                # TODO: handle noise
                 print(left_ok, right_ok)
                 dirty = True
+                # use saved left line and saved right line
+                left_line = self.saved_left_line if self.saved_left_line else left_line
+                right_line = self.saved_right_line if self.saved_right_line else right_line
+            elif not dirty:
+                self.saved_left_line = left_line
+                self.saved_right_line = right_line
 
             left_pt0, left_pt1 = get_endpoints(
                 left_line, self.top, self.bottom)
