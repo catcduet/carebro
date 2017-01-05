@@ -435,7 +435,7 @@ def center_tracking(img, recent_centers, gmean, count_gmean, raw_center,
     # show centers if debugging
     if debug:
         cv2.circle(img, raw_center, 4, RED, 2)
-        cv2.circle(img, center, 4, GREEN, 2)
+    cv2.circle(img, center, 4, GREEN, 2)
     return center
 
 
