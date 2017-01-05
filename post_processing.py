@@ -28,6 +28,9 @@ class ROI:
         self.width = width
 
     def update(self, line, width):
+        if line is None:
+            return False, 0
+
         vx, vy, cx, cy = line
         if vy == 0:
             angle = np.arccos(self.vx * vx)
@@ -120,25 +123,25 @@ class PostProcessing:
             center = (0, 0)
             dirty = True
         else:
-            if left_line is None:   # not detect left marking
-                left_line = self.left_roi.get_center_line()
-                dirty = True
-            if right_line is None:  # not detect right marking
-                right_line = self.right_roi.get_center_line()
-                dirty = True
-
             # update region of interest
             left_ok, angle = self.left_roi.update(left_line, ROI_WIDTH)
             right_ok, angle = self.right_roi.update(right_line, ROI_WIDTH)
 
-            if not (left_ok and right_ok):  # noise
-                print(left_ok, right_ok)
+            print(left_ok, right_ok)
+
+            # use saved left line and saved right line if not ok
+            if not left_ok:
                 dirty = True
-                # use saved left line and saved right line
-                left_line = self.saved_left_line if self.saved_left_line else left_line
-                right_line = self.saved_right_line if self.saved_right_line else right_line
-            elif not dirty:
+                left_line = (self.saved_left_line
+                             if self.saved_left_line else left_line)
+            elif not self.left_roi.dirty:
                 self.saved_left_line = left_line
+
+            if not right_ok:
+                dirty = True
+                right_line = (self.saved_right_line
+                              if self.saved_right_line else right_line)
+            elif not self.right_roi.dirty:
                 self.saved_right_line = right_line
 
             left_pt0, left_pt1 = get_endpoints(
