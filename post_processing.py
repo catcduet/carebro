@@ -317,7 +317,13 @@ class PostProcessing:
             sum_rout = (integral[t][rout] + integral[b][r] -
                         integral[t][r] - integral[b][rout])
 
-        split_point = lin if 0 < sum_lin < sum_rin else rin
+        if sum_lin == 0:
+            split_point = rin
+        if sum_rin == 0:
+            split_point = lin
+        if sum_lin > 0 and sum_rin > 0:
+            split_point = lin if sum_lin < sum_rin else rin
+
         return split_point
 
 
