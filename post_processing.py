@@ -178,7 +178,9 @@ class PostProcessing:
             cv2.imshow("Heat Map", thresh)
             cv2.imshow("Debug", debug_img)
 
-        return img, center, left_points, right_points
+        cv2.circle(img, center, 4, GREEN, 2)
+
+        return thresh, center, left_points, right_points
 
     def _get_windows(self, img):
         windows = []
@@ -379,7 +381,7 @@ def center_tracking(img, recent_centers, gmean, count_gmean, raw_center,
     # recent_centers: some number of recent center points
     # gmean: global mean
     # count_gmean
-    default_center = (333, 504)  # center of the video
+    default_center = (240, 504)  # center of the video
 
     # Perform center tracking
     mean = None

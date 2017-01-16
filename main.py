@@ -24,7 +24,7 @@ def main(args):
     n_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fourcc = fourcc = cv2.VideoWriter_fourcc(*CODEC)
     out_video = cv2.VideoWriter(
-        out_video_path, fourcc, fps, (width, height), isColor=True)
+        out_video_path, fourcc, fps, (width, height), isColor=False)
 
     with open(OUT_FILE, "w") as f:
         f.write("{0}\n".format(n_frames))
@@ -33,8 +33,9 @@ def main(args):
 
     timer = Timer()
 
-    margin = Margin(432, 0, 88, 88)
+    margin = Margin(360, 0, 0, 0)
     stride = args["stride"]
+    # debug = args["debug"]
 
     gmean = 0
     count_gmean = 0
@@ -48,10 +49,10 @@ def main(args):
 
         out, raw_center, left_points, right_points = pp.process(img)
 
-        center = center_tracking(img, recent_centers, gmean, count_gmean,
-                                 raw_center, left_points, right_points)
+        # center = center_tracking(img, recent_centers, gmean, count_gmean,
+        #                          raw_center, left_points, right_points)
 
-        print_center(OUT_FILE, i, center)
+        print_center(OUT_FILE, i, raw_center)
 
         cv2.imshow("Output", out)
 
@@ -59,7 +60,7 @@ def main(args):
 
         timer.stop()
 
-        cv2.waitKey(0)
+        # cv2.waitKey(0)
         if 0xFF & cv2.waitKey(5) == 27:
             break
 
@@ -69,4 +70,5 @@ if __name__ == "__main__":
     ap.add_argument("video", type=str, help="path to video")
     ap.add_argument("-s", "--stride", type=int,
                     default=5, help="window stride")
+    # ap.add_argument("-d", "--debug", type=bool)
     main(vars(ap.parse_args()))
