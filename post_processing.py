@@ -180,7 +180,7 @@ class PostProcessing:
 
         cv2.circle(img, center, 4, GREEN, 2)
 
-        return thresh, center, left_points, right_points
+        return img, center, left_points, right_points
 
     def _get_windows(self, img):
         windows = []
